@@ -15,3 +15,14 @@ export interface JwtPayload {
   id: string;
   role: ROLE;
 }
+
+export interface Payload_QR_CODE {
+  user_id: string;
+  owner_id : string;
+  status : GO_WORK_STATUS;
+}
+
+export  enum GO_WORK_STATUS {
+  GOING_TO_WORK = "GOING_TO_WORK",
+  LEFT_FROM_WORK = "LEFT_FROM_WORK"
+}

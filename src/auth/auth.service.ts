@@ -6,7 +6,7 @@ import { User } from 'src/User/entity/user';
 import { Repository } from 'typeorm';
 import { ChangePasswordBody, LoginBody } from './dto/auth';
 import * as bcrypt from 'bcrypt';
-import { JwtPayload } from 'types/global.types';
+import { JwtPayload, ROLE } from 'types/global.types';
 
 @Injectable()
 export class AuthService {
@@ -92,19 +92,37 @@ async changePassword(userId: string, body: ChangePasswordBody) {
    async getProfile(userId: string) {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      select: [
-        "id",
-        "login",
-        "firstname",
-        "lastname",
-        "middlname",
-        "email",
-        "company",
-        "role",
-        "isBlock",
-        "created_At",
-        "updated_At",
-      ],
+    //   select: [
+    //     "id",
+    //     "login",
+    //     "firstname",
+    //     "lastname",
+    //     "middlname",
+    //     "email",
+    //     "company",
+    //     "role",
+    //     "isBlock",
+    //     "created_At",
+    //     "updated_At",
+    //   ],
+    select : {
+        id : true,
+        login : true,
+        firstname : true,
+        lastname : true,
+        middlname : true,
+        email : true,
+        // company : true,
+        role : true,
+        isBlock : true,
+        created_At : true,
+        updated_At : true,
+        owner : {
+            company : true
+        }
+    },
+    relations : {
+        owner : true}
     });
 
     if (!user) throw new HttpException("User topilmadi", 404);
@@ -113,7 +131,25 @@ async changePassword(userId: string, body: ChangePasswordBody) {
       throw new ForbiddenException("User bloklangan");
     }
 
-    return user;
+    let companyName = "";
+    if(user.role === ROLE.ADMIN) companyName = "Admin No Company";
+    else if(user.role == ROLE.OWNER) companyName = user.company;
+    else if(user.owner){
+        companyName = user.owner.company;
+    } 
+    return {
+        id : user.id,
+        login : user.login,
+        firstname : user.firstname,
+        lastname : user.lastname,
+        middlname : user.middlname,
+        email : user.email,
+        company : companyName,
+        role : user.role,
+        isBlock : user.isBlock,
+        created_At : user.created_At,
+        updated_At : user.updated_At
+    };
   }
 }
 

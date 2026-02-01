@@ -10,12 +10,18 @@ import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/JwtAuthGuard';
 import { RolesGuard } from './auth/roles.guard';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [configENV,
 
   TypeOrmConfig,
-
+ ThrottlerModule.forRoot([
+      {
+        ttl: 60_000,   // 60s
+        limit: 60,     // 60 request / 60s (1 req/sec)
+      },
+    ]),
 
 
   // Modulllar 
@@ -31,6 +37,10 @@ import { RolesGuard } from './auth/roles.guard';
       useClass: JwtAuthGuard,
     },
       { provide: APP_GUARD, useClass: RolesGuard },
+      {
+    provide: APP_GUARD,
+    useClass: ThrottlerGuard,
+  },    
 
   ],
 })
