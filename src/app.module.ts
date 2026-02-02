@@ -2,7 +2,6 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import {ConfigModule, ConfigService} from "@nestjs/config"
-import { TypeOrmConfig } from 'config/database.typeorm';
 import { configENV } from 'config/configService';
 import { userModule } from './User/user.module';
 import { AttendanceModule } from './Attendance/Attendance.module';

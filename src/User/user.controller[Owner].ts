@@ -1,18 +1,15 @@
 import { Controller, Get, Query, Req } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { Roles } from "src/auth/roles.decorator";
-import { UserService } from "./user.service";
 import { ROLE } from "types/global.types";
 import { UserServiceOwner } from "./user.service[owner]";
 import { GetOwnerUsersQueryDto } from "./entity/user.dto[owner]";
-import { QrService } from "src/QR/qr.service";
 
 @ApiTags("Owner => Users")
 @Controller("owner")
 export class UserControllerOwner {
   constructor(
-    private readonly userService: UserServiceOwner,
-    private readonly QR : QrService
+    private readonly userService: UserServiceOwner
 ) {}
   
 
@@ -45,12 +42,4 @@ export class UserControllerOwner {
     return this.userService.getUsersByOwner(req.user.id, query);
   }
 
-  @ApiBearerAuth()
-  @ApiOperation({ summary: "Test QR code generation for Owner" })
-  @Get("/test")
-    async testOwner() {
-        const qr_code = await this.QR.generateBase64("  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImU2OGUwZmNlLWQwMmUtNDU4MC1iNzkyLWQxZDVkOWRmNTQ4ZSIsInJvbGUiOiJPV05FUiIsImlhdCI6MTc2OTg5OTQzMCwiZXhwIjoxNzY5OTM1NDMwfQ.iiiImCHgD8XcwfPW3mYtHc4Dy4ZhcOPFbmz21Xo-XD0");
-        return  qr_code
-        
-    }
 }

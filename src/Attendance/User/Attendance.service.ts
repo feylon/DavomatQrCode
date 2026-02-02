@@ -7,7 +7,6 @@ import { User } from "src/User/entity/user";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { GO_WORK_STATUS, Payload_QR_CODE, ROLE } from "types/global.types";
-import { not } from "rxjs/internal/util/not";
 import { GetUserStatsQueryDto } from "./types";
 
 @Injectable()
@@ -24,7 +23,6 @@ export class Attendance_SERVICE {
         const QR_CODE_SECRET = this.config.get<string>('QR_CODE_SECRET');
 
 
-        console.log("Generating QR code for user ID:", userId);
         const user = await this.userRepository.findOne({
             where: {
                 id: userId,
@@ -70,7 +68,6 @@ export class Attendance_SERVICE {
 
 
       async generateUserQrCodeOut(userId: string) {
-        console.log("Generating QR code for user ID:", userId);
         const user = await this.userRepository.findOne({
             where: {
                 id: userId,

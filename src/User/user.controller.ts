@@ -87,7 +87,6 @@ export class UserController {
     @ApiResponse({ status: 404, description: "Owner topilmadi" })
     @ApiResponse({ status: 400, description: "login/email mavjud" })
     updateOwner(@Param("id", new ParseUUIDPipe()) id: string, @Body() body: UpdateOwnerAdminDto, @Req() req: any) {
-      console.log("Request user:", req.user);
       return this.adminService.updateOwner(id, body);
     }
 
@@ -100,7 +99,6 @@ export class UserController {
     @ApiParam({ name: "id", description: "Owner ID", example: "7ac2925f-558d-4fa7-8cd2-2a4b44e81d09", type : "string" })
 
     getOwnerById(@Param("id", new ParseUUIDPipe()) id: string, @Req() req: any) {
-      console.log("Request user:", req.user);
         return this.adminService.getOwnerById(id);
     }
 

@@ -18,14 +18,12 @@ export class AttendanceController_USER {
 
     @Post("enter/generated_qr")
     async generateQrCodeEnter(@Req() req: any) {
-        console.log(req.user)
         return this.attendanceService.generateUserQrCodeEnter(req.user.id);
     }
 
 
     @Post("exit/generated_qr")
     async generateQrCodeOut(@Req() req: any) {
-        console.log(req.user)
         return this.attendanceService.generateUserQrCodeOut(req.user.id);
     }
 
