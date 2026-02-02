@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsDate, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min, ValidateNested } from "class-validator";
+import { IsDate, IsEnum, IsInt, IsJWT, IsNotEmpty, IsOptional, IsString, IsUUID, Max, Min, ValidateNested } from "class-validator";
 import { AttendanceStatus, GO_WORK_STATUS } from "types/global.types";
 
 
@@ -74,6 +74,7 @@ export class GetAttendanceStatsQueryDto {
   @Transform(({ value }) => Number(value))
   @IsInt()
   @Min(1)
+  @Max(100)
   limit?: number = 10;
 
   @ApiPropertyOptional({ description: "Boshlanish sanasi (YYYY-MM-DD)", example: "2023-10-01" })
@@ -88,6 +89,11 @@ export class GetAttendanceStatsQueryDto {
   @IsDate()
   endDate?: Date;
 
+  @ApiPropertyOptional({ description: "Faqat bitta xodim davomati (ID)" })
+  @IsOptional()
+  @IsUUID()
+  userId?: string;
+
   @ApiPropertyOptional({ description: "Ism yoki familiya bo'yicha qidiruv" })
   @IsOptional()
   @IsString()
@@ -100,4 +106,12 @@ export class GetAttendanceStatsQueryDto {
   @IsOptional()
   @IsEnum(AttendanceStatus)
   status?: AttendanceStatus;
+}
+
+
+export class ScanTokenDto {
+  @ApiProperty({ description: "Kamera orqali o'qilgan QR kod matni (JWT token)" })
+  @IsString()
+  @IsJWT()
+  token: string;
 }
