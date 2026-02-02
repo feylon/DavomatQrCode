@@ -15,7 +15,7 @@ export class SeedAdmin1769884347300 implements MigrationInterface {
 
     if (exist?.length) return;
 
-    const hashed = await bcrypt.hash("admin0101", 10);
+    const hashed = await bcrypt.hash("admin01", 10);
 
     await queryRunner.query(
       `INSERT INTO "users" ("login","password","firstname","lastname","email","role","isBlock")

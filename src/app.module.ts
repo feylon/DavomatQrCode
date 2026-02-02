@@ -11,11 +11,25 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/JwtAuthGuard';
 import { RolesGuard } from './auth/roles.guard';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [configENV,
 
-  TypeOrmConfig,
+  TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_NAME'),
+        synchronize: false,
+        dropSchema: false,
+        autoLoadEntities: true,
+      })}),
  ThrottlerModule.forRoot([
       {
         ttl: 60_000,   // 60s
