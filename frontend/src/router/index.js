@@ -19,7 +19,9 @@ const routes = [
       { path: 'owner/scan', component: () => import('@/views/owner/OwnerScanner.vue'), meta: { roles: ['OWNER'] } },
       { path: 'owner/employees', component: () => import('@/views/owner/OwnerEmployees.vue'), meta: { roles: ['OWNER'] } },
       { path: 'owner/history', component: () => import('@/views/owner/OwnerHistory.vue'), meta: { roles: ['OWNER'] } },
-      // ROUTES
+
+      { path: 'me', component: () => import('@/views/user/UserHome.vue'), meta: { roles: ['USER'] } },
+      { path: 'me/history', component: () => import('@/views/user/UserHistory.vue'), meta: { roles: ['USER'] } },
     ],
   },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/NotFound.vue') },
