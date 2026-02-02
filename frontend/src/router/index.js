@@ -11,6 +11,9 @@ const routes = [
     children: [
       { path: '', name: 'home', redirect: () => useAuthStore().homePath },
       { path: 'profile', name: 'profile', component: () => import('@/views/ProfileView.vue') },
+      { path: 'admin', component: () => import('@/views/admin/AdminDashboard.vue'), meta: { roles: ['ADMIN'] } },
+      { path: 'admin/owners', component: () => import('@/views/admin/AdminOwners.vue'), meta: { roles: ['ADMIN'] } },
+      { path: 'admin/users', component: () => import('@/views/admin/AdminUsers.vue'), meta: { roles: ['ADMIN'] } },
       // ROUTES
     ],
   },
