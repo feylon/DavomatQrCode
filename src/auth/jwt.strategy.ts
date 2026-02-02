@@ -1,12 +1,18 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
+import { InjectRepository } from "@nestjs/typeorm";
 import { ExtractJwt, Strategy } from "passport-jwt";
+import { User } from "src/User/entity/user";
+import { Repository } from "typeorm";
 import { JwtPayload } from "types/global.types";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -15,13 +21,22 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload) {
-    if (!payload) {
+    if (!payload?.id) {
       throw new UnauthorizedException();
     }
 
+    // Token berilgandan keyin bloklangan yoki o'chirilgan foydalanuvchilarni to'xtatish
+    const user = await this.userRepository.findOne({
+      where: { id: payload.id },
+      select: ["id", "role", "isBlock"],
+    });
+    if (!user || user.isBlock) {
+      throw new UnauthorizedException("Foydalanuvchi bloklangan yoki mavjud emas");
+    }
+
     return {
-      id: payload.id,
-      role: payload.role,
+      id: user.id,
+      role: user.role,
     };
   }
 }

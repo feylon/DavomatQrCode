@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, MinLength } from "class-validator";
+import { IsJWT, IsString, MinLength } from "class-validator";
 
 export class LoginBody {
   @ApiProperty({
@@ -34,4 +34,11 @@ export class ChangePasswordBody {
   @IsString()
   @MinLength(6)
   newPassword: string;
+}
+
+
+export class RefreshTokenBody {
+  @ApiProperty({ description: "Login paytida olingan refresh token" })
+  @IsJWT()
+  refreshToken: string;
 }

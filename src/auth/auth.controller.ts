@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
-import { ChangePasswordBody, LoginBody } from './dto/auth';
-import { ApiBearerAuth, ApiOkResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, Post, Req } from '@nestjs/common';
+import { ChangePasswordBody, LoginBody, RefreshTokenBody } from './dto/auth';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
-import { JwtAuthGuard } from './JwtAuthGuard';
 import { Public } from 'src/common/decorators/public.decorator';
 
 @ApiTags('Auth')
@@ -11,13 +11,26 @@ export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
     @Public()
+    @Throttle({ default: { limit: 10, ttl: 60_000 } })
+    @HttpCode(200)
     @Post('login')
+    @ApiOperation({ summary: "Tizimga kirish (access + refresh token)" })
     login(@Body() body: LoginBody) {
         return this.authService.loginFunction(body);
     }
 
+    @Public()
+    @HttpCode(200)
+    @Post('refresh')
+    @ApiOperation({ summary: "Refresh token orqali yangi tokenlar olish" })
+    refresh(@Body() body: RefreshTokenBody) {
+        return this.authService.refreshTokens(body.refreshToken);
+    }
+
     @ApiBearerAuth()
+    @HttpCode(200)
     @Post('changePassword')
+    @ApiOperation({ summary: "Parolni o'zgartirish" })
     changePassword(@Body() body: ChangePasswordBody, @Req() req: any) {
         return this.authService.changePassword(req.user.id, body);
     }
