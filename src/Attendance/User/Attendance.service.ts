@@ -16,10 +16,14 @@ export class Attendance_SERVICE {
         @InjectRepository(Attendance) private readonly attendanceRepository: Repository<Attendance>,
         @InjectRepository(User) private readonly userRepository: Repository<User>,
         private readonly config: ConfigService,
-        private readonly jwtService: JwtService
+        private readonly jwt: JwtService
     ) { }
 
     async generateUserQrCodeEnter(userId: string) {
+
+        const QR_CODE_SECRET = this.config.get<string>('QR_CODE_SECRET');
+
+
         console.log("Generating QR code for user ID:", userId);
         const user = await this.userRepository.findOne({
             where: {
@@ -52,9 +56,10 @@ export class Attendance_SERVICE {
             user_id : user.id,
             status : GO_WORK_STATUS.GOING_TO_WORK
         }
-
+        const token = this.jwt.sign(payload, {secret : QR_CODE_SECRET, expiresIn : '1h'});
+        const base64 = await this.qrService.generateBase64(token);
         return {
-            qr_code : payload,
+            qr_code : base64,
             company : user.owner.company,
             status : GO_WORK_STATUS.GOING_TO_WORK
 
@@ -97,9 +102,14 @@ export class Attendance_SERVICE {
             user_id : user.id,
             status : GO_WORK_STATUS.LEFT_FROM_WORK
         }
+        const QR_CODE_SECRET = this.config.get<string>('QR_CODE_SECRET');
+
+        const token = this.jwt.sign(payload, {secret : QR_CODE_SECRET, expiresIn : '1h'});
+        const base64 = await this.qrService.generateBase64(token);
+
 
         return {
-            qr_code : payload,
+            qr_code : base64,
             company : user.owner.company,
             status : GO_WORK_STATUS.LEFT_FROM_WORK
 
@@ -112,13 +122,10 @@ export class Attendance_SERVICE {
         const { page = 1, limit = 10, startDate, endDate, status } = query;
         const skip = (page - 1) * limit;
 
-        // QueryBuilder yaratamiz
         const qb = this.attendanceRepository.createQueryBuilder("attendance");
 
-        // 1. Faqat shu USERning o'ziga tegishli ma'lumotlar
         qb.where("attendance.user_id = :userId", { userId });
 
-        // 2. Sana bo'yicha filtrlash
         if (startDate && endDate) {
             const start = new Date(startDate);
             start.setHours(0, 0, 0, 0);
@@ -129,12 +136,10 @@ export class Attendance_SERVICE {
             qb.andWhere("attendance.start_time BETWEEN :start AND :end", { start, end });
         }
 
-        // 3. Status bo'yicha filtrlash
         if (status) {
             qb.andWhere("attendance.status = :status", { status });
         }
 
-        // 4. Jami soatni hisoblash (Pagination va Orderdan oldin!)
         const totalHoursQuery = qb.clone();
         const { sum } = await totalHoursQuery
             .select("SUM(attendance.worked_hours)", "sum")
@@ -142,12 +147,9 @@ export class Attendance_SERVICE {
         
         const totalWorkedHours = sum ? parseFloat(sum) : 0;
 
-        // 5. Tartiblash va Pagination
-        qb.orderBy("attendance.start_time", "DESC"); // Eng yangilari tepad
+        qb.orderBy("attendance.start_time", "DESC"); 
         qb.skip(skip).take(limit);
 
-        // User ma'lumotlarini olish shart emas, chunki user o'zi kimligini biladi,
-        // lekin xohlasangiz relation qo'shishingiz mumkin.
         
         const [data, total] = await qb.getManyAndCount();
 
@@ -166,8 +168,7 @@ export class Attendance_SERVICE {
                 end_time: item.end_time,
                 worked_hours: item.worked_hours,
                 status: item.status,
-                reason: item.reason // Agar sababli kelmagan bo'lsa ko'rinadi
-            }))
+                reason: item.reason }))
         };
     }
 }

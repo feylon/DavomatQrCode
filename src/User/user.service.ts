@@ -267,12 +267,10 @@ async updateUserAdmin(id: string, body: UpdateUserAdminDto) {
 
     const saved = await this.userRepository.save(user);
 
-    return saved; // password select:false, shuning uchun qaytmaydi
-  }
+    return saved; }
 
 
 
-//   Userni qidirish 
 async getUsers(query: GetUsersQueryDto) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;

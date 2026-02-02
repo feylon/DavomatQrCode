@@ -44,9 +44,6 @@ export class Attendance {
   @UpdateDateColumn()
   updated_At: Date;
 
-  // =====================
-  // USER RELATION
-  // =====================
 
   @ManyToOne(() => User, user => user.attendances, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })

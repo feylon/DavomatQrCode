@@ -38,6 +38,8 @@
     "class-validator": "^0.14.3",
     "cookie-parser": "^1.4.7",
     "helmet": "^8.1.0",
+    "jimp": "^1.6.0",
+    "jsqr": "^1.4.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.18.0",

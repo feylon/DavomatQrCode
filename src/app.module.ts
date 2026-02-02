@@ -19,7 +19,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
  ThrottlerModule.forRoot([
       {
         ttl: 60_000,   // 60s
-        limit: 60,     // 60 request / 60s (1 req/sec)
+        limit: 600,     // 60 request / 60s (1 req/sec)
       },
     ]),
 

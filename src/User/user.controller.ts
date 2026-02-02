@@ -105,7 +105,6 @@ export class UserController {
     }
 
 
-    // User qo'shish VA OWNERGA BIRIKTIRISH
     
   @Roles(ROLE.ADMIN)
   @Post("/admin/users")
@@ -118,7 +117,6 @@ export class UserController {
   }
 
 
-//   Userni Update qilish
 
   @Roles(ROLE.ADMIN)
   @Patch("/admin/users/:id")
