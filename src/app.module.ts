@@ -1,4 +1,5 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Logger, Module, OnModuleInit } from '@nestjs/common';
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import {ConfigModule, ConfigService} from "@nestjs/config"
@@ -28,6 +29,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         synchronize: false,
         dropSchema: false,
         autoLoadEntities: true,
+        // Migratsiyalar ilova ishga tushganda avtomatik bajariladi (Docker uchun qulay)
+        migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
+        migrationsRun: configService.get<string>('DB_MIGRATIONS_RUN', 'true') === 'true',
       })}),
  ThrottlerModule.forRoot([
       {
@@ -58,13 +62,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   ],
 })
 export class AppModule implements OnModuleInit{
+  private readonly logger = new Logger(AppModule.name);
   constructor(private readonly configservice  :ConfigService){}
   onModuleInit() {
     if(this.configservice.get<number>("ENV_CHECK")){
-      console.log("ENV yuklandi")
+      this.logger.log("ENV yuklandi")
     }
     else {
-      console.error("Env yuklanmadi")
+      this.logger.error("Env yuklanmadi")
     }
   }
 }

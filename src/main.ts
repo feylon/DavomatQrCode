@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import * as cookieParser from "cookie-parser";
 import { SwaggerModule } from '@nestjs/swagger';
 import { configSwagger } from 'config/swagger';
@@ -20,7 +20,14 @@ async function bootstrap() {
     res.setHeader('X-Powered-By', 'Davomat System');
     next();
   });
-  app.enableCors();
+  const origins = (process.env.CORS_ORIGINS ?? '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  app.enableCors({
+    origin: origins.length ? origins : true,
+    credentials: true,
+  });
 
   app.use(helmet({
   crossOriginEmbedderPolicy: false,
@@ -44,6 +51,10 @@ async function bootstrap() {
 
 
 
-  await app.listen(process.env.PORT ?? 3000);
+  app.enableShutdownHooks();
+
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+  Logger.log(`Server ishga tushdi: http://localhost:${port}/api  (Swagger: /api-docs)`, 'Bootstrap');
 }
 bootstrap();

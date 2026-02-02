@@ -4,6 +4,8 @@ export class AddAttendance1769883787987 implements MigrationInterface {
     name = 'AddAttendance1769883787987'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
+        // uuid_generate_v4() funksiyasi uchun kengaytma (yangi bazada mavjud bo'lmasligi mumkin)
+        await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
         await queryRunner.query(`CREATE TYPE "public"."attendance_status_enum" AS ENUM('PRESENT', 'ABSENT', 'EXCUSED', 'ON_LEAVE')`);
         await queryRunner.query(`CREATE TABLE "attendance" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "date" TIMESTAMP NOT NULL, "start_time" TIMESTAMP NOT NULL, "end_time" TIMESTAMP, "worked_hours" double precision NOT NULL DEFAULT '0', "status" "public"."attendance_status_enum" NOT NULL DEFAULT 'PRESENT', "reason" text, "created_At" TIMESTAMP NOT NULL DEFAULT now(), "updated_At" TIMESTAMP NOT NULL DEFAULT now(), "user_id" uuid, CONSTRAINT "PK_ee0ffe42c1f1a01e72b725c0cb2" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TYPE "public"."users_role_enum" AS ENUM('ADMIN', 'USER', 'OWNER')`);

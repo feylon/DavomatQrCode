@@ -1,12 +1,14 @@
 import "reflect-metadata";
+import { join } from "path";
 import { DataSource } from "typeorm";
 import * as dotenv from "dotenv";
-import { User } from "./User/entity/user"; // Yo'lni tekshirib oling
+import { User } from "./User/entity/user";
 import { Attendance } from "./Attendance/entity/Attendance";
 
 // .env faylini o'qish
 dotenv.config();
 
+// CLI (ts-node) va kompilyatsiya qilingan (dist) holatda ham ishlaydi
 export const AppDataSource = new DataSource({
   type: "postgres",
   host: process.env.DB_HOST || "localhost",
@@ -14,9 +16,9 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME || "postgres",
   password: process.env.DB_PASSWORD || "123456",
   database: process.env.DB_NAME || "Attendence",
-  synchronize: false, // Migration ishlatsangiz, buni false qilish tavsiya etiladi
-  logging: true,
+  synchronize: false,
+  logging: process.env.DB_LOGGING === "true",
   entities: [User, Attendance],
-  migrations: ["src/migrations/*.{ts,js}"],
+  migrations: [join(__dirname, "migrations", "*.{ts,js}")],
   subscribers: [],
 });
