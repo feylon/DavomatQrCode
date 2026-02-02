@@ -2,14 +2,19 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { AddOwnerAdminDto, CreateUserByAdminDto, GetOwnersQueryDto, GetUsersQueryDto, UpdateOwnerAdminDto, UpdateUserAdminDto } from "./entity/user.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./entity/user";
-import { Brackets, Repository } from "typeorm";
+import { Between, Brackets, Repository } from "typeorm";
+import { Attendance } from "src/Attendance/entity/Attendance";
+import { AttendanceStatus } from "types/global.types";
+import { ResetPasswordDto } from "./entity/user.dto[owner]";
 import * as bcrypt from "bcrypt";
-import { Roles } from "src/auth/roles.decorator";
 import { ROLE } from "types/global.types";
 
 @Injectable()
 export class UserService {
-    constructor(@InjectRepository(User) private readonly userRepository: Repository<User>) { }
+    constructor(
+        @InjectRepository(User) private readonly userRepository: Repository<User>,
+        @InjectRepository(Attendance) private readonly attendanceRepository: Repository<Attendance>,
+    ) { }
     async createOwner(body: AddOwnerAdminDto) {
 
         const { login, password, firstname, lastname, middlname, email, company } = body;
@@ -58,6 +63,7 @@ export class UserService {
                 "u.updated_At",
                 "u.isBlock",
             ])
+            .loadRelationCountAndMap("u.employeesCount", "u.users")
             .where("u.role = :role", { role: ROLE.OWNER });
 
         if (search && search.length > 0) {
@@ -66,7 +72,9 @@ export class UserService {
                 new Brackets((q) => {
                     q.where("u.firstname ILIKE :like", { like })
                         .orWhere("u.lastname ILIKE :like", { like })
-                        .orWhere("u.middlname ILIKE :like", { like });
+                        .orWhere("u.middlname ILIKE :like", { like })
+                        .orWhere("u.company ILIKE :like", { like })
+                        .orWhere("u.login ILIKE :like", { like });
                 }),
             );
         }
@@ -296,6 +304,9 @@ async getUsers(query: GetUsersQueryDto) {
         "u.created_At",
         "u.updated_At",
         "o.id",
+        "o.company",
+        "o.firstname",
+        "o.lastname",
       ])
       .where("u.role = :role", { role: ROLE.USER });
 
@@ -309,7 +320,8 @@ async getUsers(query: GetUsersQueryDto) {
         new Brackets((q) => {
           q.where("u.firstname ILIKE :like", { like })
             .orWhere("u.lastname ILIKE :like", { like })
-            .orWhere("u.middlname ILIKE :like", { like });
+            .orWhere("u.middlname ILIKE :like", { like })
+            .orWhere("u.login ILIKE :like", { like });
         }),
       );
     }
@@ -362,4 +374,40 @@ async getUsers(query: GetUsersQueryDto) {
 }
 
 
+
+
+  // Admin: istalgan owner yoki user parolini tiklash
+  async resetPassword(id: string, body: ResetPasswordDto) {
+    const account = await this.userRepository.findOne({ where: { id }, select: ["id", "role"] });
+    if (!account) throw new NotFoundException("Foydalanuvchi topilmadi");
+    if (account.role === ROLE.ADMIN) throw new BadRequestException("Admin parolini bu yerda o'zgartirib bo'lmaydi");
+
+    const hashed = await bcrypt.hash(body.newPassword, 10);
+    await this.userRepository.update({ id }, { password: hashed });
+    return { message: "Parol yangilandi" };
+  }
+
+
+  // Admin dashboard uchun umumiy statistika
+  async getAdminStats() {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const [owners, blockedOwners, users, blockedUsers, todayPresent, todayAbsent] = await Promise.all([
+      this.userRepository.count({ where: { role: ROLE.OWNER } }),
+      this.userRepository.count({ where: { role: ROLE.OWNER, isBlock: true } }),
+      this.userRepository.count({ where: { role: ROLE.USER } }),
+      this.userRepository.count({ where: { role: ROLE.USER, isBlock: true } }),
+      this.attendanceRepository.count({ where: { start_time: Between(todayStart, todayEnd), status: AttendanceStatus.PRESENT } }),
+      this.attendanceRepository.count({ where: { start_time: Between(todayStart, todayEnd) } }),
+    ]);
+
+    return {
+      owners: { total: owners, blocked: blockedOwners },
+      users: { total: users, blocked: blockedUsers },
+      today: { present: todayPresent, other: todayAbsent - todayPresent },
+    };
+  }
 }

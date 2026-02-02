@@ -1,15 +1,34 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query, Req } from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { Roles } from "src/auth/roles.decorator";
 import { AddOwnerAdminDto, CreateUserByAdminDto, GetOwnersQueryDto, GetUsersQueryDto, UpdateOwnerAdminDto, UpdateUserAdminDto } from "./entity/user.dto";
 import { UserService } from "./user.service";
 import { ROLE } from "types/global.types";
+import { ResetPasswordDto } from "./entity/user.dto[owner]";
 
 @ApiTags("Admin => Owner")
 @Controller("")
 export class UserController {
 
     constructor(private readonly adminService: UserService) { }
+
+    @Roles(ROLE.ADMIN)
+    @Get("/admin/stats")
+    @ApiBearerAuth()
+    @ApiOperation({ summary: "Admin dashboard statistikasi" })
+    getStats() {
+        return this.adminService.getAdminStats();
+    }
+
+    @Roles(ROLE.ADMIN)
+    @Patch("/admin/accounts/:id/password")
+    @ApiBearerAuth()
+    @ApiParam({ name: "id", description: "Owner yoki User ID" })
+    @ApiOperation({ summary: "Owner/User parolini tiklash (Admin)" })
+    @ApiBody({ type: ResetPasswordDto })
+    resetPassword(@Param("id", new ParseUUIDPipe()) id: string, @Body() body: ResetPasswordDto) {
+        return this.adminService.resetPassword(id, body);
+    }
 
     @Roles(ROLE.ADMIN)
     @Post("/admin/owners")
@@ -86,7 +105,7 @@ export class UserController {
     @ApiResponse({ status: 200, description: "Owner yangilandi" })
     @ApiResponse({ status: 404, description: "Owner topilmadi" })
     @ApiResponse({ status: 400, description: "login/email mavjud" })
-    updateOwner(@Param("id", new ParseUUIDPipe()) id: string, @Body() body: UpdateOwnerAdminDto, @Req() req: any) {
+    updateOwner(@Param("id", new ParseUUIDPipe()) id: string, @Body() body: UpdateOwnerAdminDto) {
       return this.adminService.updateOwner(id, body);
     }
 
@@ -98,7 +117,7 @@ export class UserController {
     @ApiResponse({ status: 404, description: "Owner topilmadi" })
     @ApiParam({ name: "id", description: "Owner ID", example: "7ac2925f-558d-4fa7-8cd2-2a4b44e81d09", type : "string" })
 
-    getOwnerById(@Param("id", new ParseUUIDPipe()) id: string, @Req() req: any) {
+    getOwnerById(@Param("id", new ParseUUIDPipe()) id: string) {
         return this.adminService.getOwnerById(id);
     }
 

@@ -5,13 +5,13 @@ import { UserController } from "./user.controller";
 import { UserService } from "./user.service";
 import { UserControllerOwner } from "./user.controller[Owner]";
 import { UserServiceOwner } from "./user.service[owner]";
-import { QrService } from "src/QR/qr.service";
+import { Attendance } from "src/Attendance/entity/Attendance";
 
 @Module({
     imports : [
-        TypeOrmModule.forFeature([User])
+        TypeOrmModule.forFeature([User, Attendance])
     ],
     controllers : [UserController, UserControllerOwner],
-    providers : [UserService, UserServiceOwner, QrService]
+    providers : [UserService, UserServiceOwner]
 })
 export class userModule {}
