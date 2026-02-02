@@ -1,0 +1,60 @@
+name: davomat
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-123456}
+      POSTGRES_DB: ${DB_NAME:-Attendence}
+      TZ: Asia/Tashkent
+      PGTZ: Asia/Tashkent
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Lokal kompyuterdan ulanish kerak bo'lsa (5432 band bo'lsa 5433 ishlatiladi)
+    ports:
+      - "${DB_PUBLIC_PORT:-5433}:5432"
+
+  backend:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 3001
+      ENV_CHECK: 1
+      TZ: Asia/Tashkent
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-123456}
+      DB_NAME: ${DB_NAME:-Attendence}
+      DB_MIGRATIONS_RUN: "true"
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:-change_me_access_secret}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:-change_me_refresh_secret}
+      QR_CODE_SECRET: ${QR_CODE_SECRET:-change_me_qr_secret}
+      accessTokenExpiry: ${ACCESS_TOKEN_EXPIRY:-15m}
+      refreshTokenExpiry: ${REFRESH_TOKEN_EXPIRY:-7d}
+      QR_CODE_TTL: ${QR_CODE_TTL:-300}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+
+volumes:
+  pgdata:
