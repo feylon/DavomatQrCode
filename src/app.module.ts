@@ -29,6 +29,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         synchronize: false,
         dropSchema: false,
         autoLoadEntities: true,
+        // Baza sessiyasi ilova bilan bir xil vaqt mintaqasida ishlashi uchun (timestamp ustunlar tz-siz)
+        extra: { options: `-c timezone=${configService.get<string>('TZ') || 'Asia/Tashkent'}` },
         // Migratsiyalar ilova ishga tushganda avtomatik bajariladi (Docker uchun qulay)
         migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
         migrationsRun: configService.get<string>('DB_MIGRATIONS_RUN', 'true') === 'true',

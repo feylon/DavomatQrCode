@@ -17,6 +17,7 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD || "123456",
   database: process.env.DB_NAME || "Attendence",
   synchronize: false,
+  extra: { options: `-c timezone=${process.env.TZ || "Asia/Tashkent"}` },
   logging: process.env.DB_LOGGING === "true",
   entities: [User, Attendance],
   migrations: [join(__dirname, "migrations", "*.{ts,js}")],
