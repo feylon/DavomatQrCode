@@ -1,107 +1,212 @@
-npm run migration:generate
-npm run migration:run
+# Davomat — QR kod orqali xodimlar davomati
 
+Xodimlarning ishga kelish va ketish vaqtini **QR kod** orqali qayd etadigan tizim.
+Xodim telefonida vaqtinchalik QR kod hosil qiladi, tashkilot rahbari uni kamera
+(yoki rasm) orqali skanerlaydi. Tizim kelish/ketishni avtomatik aniqlaydi, ishlangan
+vaqtni hisoblaydi va statistikani yuritadi.
 
-<!-- Qaytarish -->
+| Qism      | Texnologiya                                                          |
+| --------- | -------------------------------------------------------------------- |
+| Backend   | NestJS 11, TypeORM, PostgreSQL, JWT (access + refresh), Swagger      |
+| Frontend  | Vue 3, Vite, Vue Router, Pinia, Axios, qr-scanner                    |
+| Infratuzilma | Docker, Docker Compose, Nginx                                     |
 
-npm run migration:revert
-npm run migration:revert
+---
 
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+## Imkoniyatlar
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+**Administrator (ADMIN)**
+- Tizim bo‘yicha umumiy statistika (tashkilotlar, xodimlar, bugungi davomat)
+- Tashkilot (owner) qo‘shish, tahrirlash, bloklash, parolini tiklash
+- Istalgan tashkilotga xodim qo‘shish, boshqa tashkilotga o‘tkazish, bloklash
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+**Tashkilot rahbari (OWNER)**
+- **Bugungi davomat** — har bir xodimning holati (ishda / ketgan / kelmagan / belgilanmagan), avtomatik yangilanadi
+- **QR skaner** — kamera, rasm yuklash yoki matn (tashqi skaner) orqali; kelish/ketish avtomatik aniqlanadi
+- Xodimni sababli / sababsiz / ta’tilda deb belgilash va buni bekor qilish
+- Xodimlarni qo‘shish, tahrirlash, bloklash, parolini tiklash
+- Davomat tarixi: sana oralig‘i, xodim, holat bo‘yicha filtr; jami ishlangan vaqt; **CSV (Excel) eksport**
 
-## Description
+**Xodim (USER)**
+- Ishga kelish / ketish uchun QR kod hosil qilish (amal qilish muddati taymer bilan)
+- Bugungi holat va joriy oy xulosasi
+- Shaxsiy davomat tarixi
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+**Umumiy**
+- Access token muddati tugaganda refresh token orqali avtomatik yangilanadi
+- Bloklangan foydalanuvchi tokeni darhol ishlamay qoladi
+- Parolni o‘zgartirish, profil sahifasi
+- Login uchun so‘rovlar cheklovi (rate limit), Helmet, CORS sozlamasi
+- `GET /api/health` — server va baza holati
 
-## Project setup
+---
 
-```bash
-$ npm install
-```
+## Tezkor ishga tushirish (Docker) — tavsiya etiladi
 
-## Compile and run the project
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
+Talablar: **Docker 24+** va **Docker Compose v2**.
 
 ```bash
-# unit tests
-$ npm run test
+git clone <repo-url> DavomatQrCode
+cd DavomatQrCode
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker compose up -d --build
 ```
 
-## Deployment
+Birinchi ishga tushirishda image’lar yig‘iladi (bir necha daqiqa). Backend ishga
+tushganda **migratsiyalar avtomatik bajariladi** va standart admin yaratiladi.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+| Xizmat        | Manzil                                  |
+| ------------- | --------------------------------------- |
+| Frontend      | http://localhost:8080                   |
+| Backend API   | http://localhost:3001/api               |
+| Swagger (API hujjati) | http://localhost:3001/api-docs  (yoki http://localhost:8080/api-docs) |
+| PostgreSQL    | `localhost:5433` (konteyner ichida 5432) |
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+**Standart administrator:** login `admin01`, parol `admin01`
+> Birinchi kirishdan so‘ng parolni **Profil** sahifasida albatta o‘zgartiring.
+
+Foydali buyruqlar:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+docker compose ps                 # konteynerlar holati
+docker compose logs -f backend    # backend loglari
+docker compose restart backend    # backendni qayta ishga tushirish
+docker compose down               # to‘xtatish (ma’lumotlar saqlanadi)
+docker compose down -v            # to‘xtatish va bazani butunlay o‘chirish
+docker compose up -d --build      # kod o‘zgargandan so‘ng qayta yig‘ish
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Portlar va sozlamalar
 
-## Resources
+`docker compose` loyiha ildizidagi `.env` faylidan quyidagi o‘zgaruvchilarni oladi
+(berilmasa standart qiymat ishlatiladi):
 
-Check out a few resources that may come in handy when working with NestJS:
+| O‘zgaruvchi            | Standart                     | Izoh                                     |
+| ---------------------- | ---------------------------- | ---------------------------------------- |
+| `FRONTEND_PORT`        | `8080`                       | Frontend tashqi porti                    |
+| `BACKEND_PORT`         | `3001`                       | Backend tashqi porti                     |
+| `DB_PUBLIC_PORT`       | `5433`                       | PostgreSQL tashqi porti                  |
+| `DB_USERNAME` / `DB_PASSWORD` / `DB_NAME` | `postgres` / `123456` / `Attendence` | Baza                 |
+| `ACCESS_TOKEN_SECRET`, `REFRESH_TOKEN_SECRET`, `QR_CODE_SECRET` | — | JWT sirlari (**production’da albatta o‘zgartiring**) |
+| `ACCESS_TOKEN_EXPIRY`  | `15m`                        | Access token muddati                     |
+| `REFRESH_TOKEN_EXPIRY` | `7d`                         | Refresh token muddati                    |
+| `QR_CODE_TTL`          | `300`                        | QR kod amal qilish muddati (soniya)      |
+| `CORS_ORIGINS`         | `http://localhost:8080`      | Ruxsat etilgan frontend manzillari       |
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Masalan, frontendni 80-portda ochish: `FRONTEND_PORT=80 docker compose up -d`.
 
-## Support
+> **Eslatma:** sirlarda `$` belgisini ishlatmang — Docker Compose uni o‘zgaruvchi deb tushunadi.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
+## Lokal ishlab chiqish (Docker’siz)
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Talablar: **Node.js 20+** (22 tavsiya), **PostgreSQL 14+**.
 
-## License
+### 1. Backend
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```bash
+# loyiha ildizida
+cp .env.example .env        # kerak bo‘lsa DB_* qiymatlarini o‘zgartiring
+npm install
+
+# bazani yaratish (bir marta)
+createdb -U postgres Attendence
+
+npm run dev                 # http://localhost:3001/api, Swagger: /api-docs
+```
+
+`DB_MIGRATIONS_RUN=true` bo‘lsa migratsiyalar ilova ishga tushganda o‘zi bajariladi.
+Qo‘lda boshqarish uchun:
+
+```bash
+npm run migration:run       # migratsiyalarni bajarish
+npm run migration:revert    # oxirgi migratsiyani bekor qilish
+npm run migration:generate  # entity o‘zgarganda yangi migratsiya yaratish
+```
+
+### 2. Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev                 # http://localhost:5173
+```
+
+Vite dev server `/api` so‘rovlarini `http://localhost:3001` ga yo‘naltiradi.
+Boshqa manzil kerak bo‘lsa `frontend/.env` faylida `VITE_PROXY_TARGET` ni o‘zgartiring.
+
+Production build: `npm run build` → `frontend/dist`.
+
+### Testlar
+
+```bash
+npm test          # backend unit testlari
+npm run build     # TypeScript kompilyatsiyasi
+```
+
+---
+
+## Ish jarayoni
+
+1. **Admin** tizimga kiradi va **Tashkilotlar** bo‘limida tashkilot (owner) yaratadi.
+2. **Owner** o‘z login-paroli bilan kiradi, **Xodimlar** bo‘limida xodimlarni qo‘shadi
+   (yoki admin qo‘shadi).
+3. **Xodim** ishga kelganda telefonidan kiradi va **“Ishga keldim”** tugmasini bosadi —
+   ekranda QR kod chiqadi (standart: 5 daqiqa amal qiladi).
+4. **Owner** **QR skaner** sahifasida kodni skanerlaydi — kelish vaqti qayd etiladi.
+   Xodim ekranidagi QR avtomatik yopiladi va holat “Ishda”ga o‘zgaradi.
+5. Ish tugagach xodim **“Ishdan ketyapman”** QR kodini ko‘rsatadi — ketish vaqti va
+   ishlangan soat hisoblanadi.
+6. Kelmagan xodimlarni owner **Bugungi davomat** sahifasida *sababli / sababsiz / ta’tilda*
+   deb belgilaydi. Hisobotlar **Davomat tarixi** bo‘limida, CSV eksport bilan.
+
+### Kamera haqida muhim eslatma
+
+Brauzerlar kameraga faqat **xavfsiz kontekstda** ruxsat beradi: `https://...` yoki
+`http://localhost`. Tizim lokal tarmoqda IP orqali (`http://192.168.x.x:8080`) ochilsa,
+kamera ishlamaydi — bunday holda **Rasm** yoki **Matn** rejimidan foydalaning yoki
+serverni HTTPS (masalan, Nginx + Let’s Encrypt, Caddy) orqali ishga tushiring.
+
+---
+
+## Loyiha tuzilmasi
+
+```
+.
+├── config/                 # Swagger, ENV, QR dekoder
+├── src/
+│   ├── auth/               # login, refresh, profil, guardlar
+│   ├── User/               # admin va owner uchun foydalanuvchi boshqaruvi
+│   ├── Attendance/
+│   │   ├── Owner/          # skanerlash, bugungi holat, statistika, eksport
+│   │   └── User/           # QR yaratish, shaxsiy statistika
+│   ├── QR/                 # QR rasm generatsiyasi
+│   ├── common/             # dekoratorlar, yordamchi funksiyalar
+│   └── migrations/         # TypeORM migratsiyalari (admin seed bilan)
+├── types/                  # umumiy enum va tiplar
+├── frontend/               # Vue 3 ilova
+│   ├── src/views/admin     # admin sahifalari
+│   ├── src/views/owner     # owner sahifalari
+│   ├── src/views/user      # xodim sahifalari
+│   ├── Dockerfile
+│   └── nginx.conf
+├── docs/API.md             # API qisqacha qo‘llanma
+├── Dockerfile              # backend image
+└── docker-compose.yml
+```
+
+API endpointlari ro‘yxati: [docs/API.md](docs/API.md) yoki Swagger (`/api-docs`).
+
+---
+
+## Muammolarni hal qilish
+
+| Muammo | Yechim |
+| ------ | ------ |
+| `port is already allocated` | Portni o‘zgartiring: `FRONTEND_PORT=8081 BACKEND_PORT=3002 docker compose up -d` |
+| Backend `unhealthy` | `docker compose logs backend` — odatda baza ulanishi yoki `.env` xatosi |
+| Kamera ochilmaydi | `localhost` yoki HTTPS orqali oching; brauzerda kamera ruxsatini tekshiring |
+| “QR kod yaroqsiz yoki muddati o‘tgan” | Xodim QR kodni yangilashi kerak (`QR_CODE_TTL` ni oshirish mumkin) |
+| Vaqtlar noto‘g‘ri | `TZ` (standart `Asia/Tashkent`) backend va bazada bir xil bo‘lishi kerak |
+| Bazani noldan boshlash | `docker compose down -v && docker compose up -d --build` |
