@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { userApi } from '@/api'
 import { errorMessage } from '@/api/http'
 import { useToast } from '@/composables/useToast'
@@ -15,6 +15,7 @@ const auth = useAuthStore()
 const today = ref(null)
 const qr = ref(null) // { qr_code, status, expires_at, company }
 const generating = ref(false)
+const qrCard = ref(null)
 const now = ref(Date.now())
 
 const state = computed(() => today.value?.state ?? 'NOT_MARKED')
@@ -45,6 +46,9 @@ async function generate(kind) {
   generating.value = true
   try {
     qr.value = kind === 'enter' ? await userApi.enterQr() : await userApi.exitQr()
+    // Mobil ekranda QR pastda qoladi — unga aylantiramiz
+    await nextTick()
+    if (window.innerWidth < 760) qrCard.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   } catch (e) {
     toast.error(errorMessage(e))
   } finally {
@@ -120,7 +124,7 @@ const STATE_TEXT = {
         </div>
       </div>
 
-      <div class="card card-body qr-card">
+      <div ref="qrCard" class="card card-body qr-card">
         <template v-if="qr">
           <div class="qr-label">
             <span class="badge" :class="qr.status === 'GOING_TO_WORK' ? 'badge-success' : 'badge-primary'">
@@ -144,7 +148,7 @@ const STATE_TEXT = {
         <template v-else>
           <div class="qr-empty">
             <AppIcon name="qr" :size="56" />
-            <p>QR kod hosil qilish uchun chapdagi tugmani bosing</p>
+            <p>QR kod hosil qilish uchun «Ishga keldim» yoki «Ishdan ketyapman» tugmasini bosing</p>
             <p class="small muted">QR kod xavfsizlik uchun bir necha daqiqa amal qiladi</p>
           </div>
         </template>

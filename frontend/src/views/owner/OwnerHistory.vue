@@ -135,9 +135,9 @@ async function exportCsv() {
               <option value="ON_LEAVE">Ta’tilda</option>
             </select>
           </div>
-          <div class="field" style="flex: 1">
+          <div class="field" style="flex: 1 1 200px">
             <label class="small muted">Qidiruv</label>
-            <input v-model="filters.search" class="input grow" placeholder="Ism yoki login…" />
+            <input v-model="filters.search" class="input" style="width: 100%" placeholder="Ism yoki login…" />
           </div>
         </div>
       </div>
